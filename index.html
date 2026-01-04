@@ -10,44 +10,37 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
+        /* Modern Professional Dark Theme */
         body { 
-            background-color: #030712; 
+            background-color: #020617; /* Slate 950 */
             color: #e2e8f0; 
             font-family: 'Inter', sans-serif;
-            background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #020617 60%);
+            background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 80%);
             background-attachment: fixed;
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
-        /* Glassmorphism Utilities */
+        /* Clean Glass Panels */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .glass-header {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(2, 6, 23, 0.85);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
         }
         
-        /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        /* Animations */
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(244, 63, 94, 0.2); }
-            50% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.6); }
-        }
-        .animate-glow { animation: pulse-glow 2s infinite; }
-        
-        /* Login Input Auto-fill fix */
         input:-webkit-autofill,
         input:-webkit-autofill:hover, 
         input:-webkit-autofill:focus, 
@@ -81,14 +74,14 @@
         import React, { useState, useEffect, useRef, useMemo } from 'react';
         import { createRoot } from 'react-dom/client';
         import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-        import { Activity, Zap, Layers, AlertTriangle, ArrowRight, TrendingUp, TrendingDown, History, CheckCircle2, XCircle, Wallet, Search, Lock, Microscope, BarChart3, X, SkipForward, LayoutGrid, Radio, LogOut, KeyRound, Mail, Cloud } from 'lucide-react';
+        import { Activity, Zap, Layers, AlertTriangle, ArrowRight, TrendingUp, TrendingDown, History, CheckCircle2, XCircle, Wallet, Search, Lock, Microscope, BarChart3, X, SkipForward, LayoutGrid, Radio, LogOut, KeyRound, Mail, Cloud, Save } from 'lucide-react';
         
-        // --- FIREBASE IMPORTS ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        // --- FIREBASE IMPORTS (Standard ESM) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // --- FIREBASE CONFIGURATION ---
+        // --- YOUR FIREBASE CONFIGURATION (From Request) ---
         const firebaseConfig = {
             apiKey: "AIzaSyA7u0I9JVLeKz39CAh4iTf4UMkTr6uxE3o",
             authDomain: "micro-scalp-pro.firebaseapp.com",
@@ -118,35 +111,38 @@
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
                 } catch (err) {
-                    console.error(err);
-                    setError('Invalid credentials. Access denied.');
+                    console.error("Login Error:", err);
+                    if (err.code === 'auth/invalid-credential') {
+                        setError('Invalid Email or Password.');
+                    } else {
+                        setError('Connection error. Check console.');
+                    }
                 }
                 setLoading(false);
             };
 
             return (
                 <div className="min-h-screen flex items-center justify-center p-4">
-                    <div className="glass-panel p-8 rounded-2xl w-full max-w-md shadow-[0_0_50px_rgba(168,85,247,0.15)] border border-purple-500/20 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
-                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl"></div>
+                    <div className="glass-panel p-8 rounded-2xl w-full max-w-md shadow-2xl border border-slate-700/50 relative overflow-hidden bg-slate-900/80">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 to-blue-600"></div>
                         
                         <div className="flex flex-col items-center mb-8">
-                            <div className="p-3 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl shadow-lg shadow-purple-900/30 mb-4">
+                            <div className="p-3 bg-gradient-to-br from-sky-600 to-blue-700 rounded-xl shadow-lg shadow-sky-900/30 mb-4">
                                 <Microscope className="text-white w-8 h-8" />
                             </div>
-                            <h1 className="text-2xl font-bold text-white tracking-tight">MICRO SCALP <span className="text-purple-400">PRO</span></h1>
-                            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Authorized Access Only</p>
+                            <h1 className="text-2xl font-bold text-white tracking-tight">MICRO SCALP <span className="text-sky-400">PRO</span></h1>
+                            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-medium">System Access</p>
                         </div>
 
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-xs text-slate-400 font-medium ml-1">Email</label>
+                                <label className="text-xs text-slate-300 font-semibold ml-1">Email</label>
                                 <div className="relative group">
-                                    <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-500 group-focus-within:text-purple-400 transition-colors" />
+                                    <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-500 group-focus-within:text-sky-400 transition-colors" />
                                     <input 
                                         type="email" 
                                         required
-                                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-slate-200 placeholder-slate-600 transition-all"
+                                        className="w-full bg-slate-950/60 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 text-slate-200 placeholder-slate-600 transition-all"
                                         placeholder="admin@microscalp.com"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
@@ -155,13 +151,13 @@
                             </div>
                             
                             <div className="space-y-1">
-                                <label className="text-xs text-slate-400 font-medium ml-1">Password</label>
+                                <label className="text-xs text-slate-300 font-semibold ml-1">Password</label>
                                 <div className="relative group">
-                                    <KeyRound className="absolute left-3 top-3 w-4 h-4 text-slate-500 group-focus-within:text-purple-400 transition-colors" />
+                                    <KeyRound className="absolute left-3 top-3 w-4 h-4 text-slate-500 group-focus-within:text-sky-400 transition-colors" />
                                     <input 
                                         type="password" 
                                         required
-                                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-slate-200 placeholder-slate-600 transition-all"
+                                        className="w-full bg-slate-950/60 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 text-slate-200 placeholder-slate-600 transition-all"
                                         placeholder="••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
@@ -179,18 +175,11 @@
                             <button 
                                 type="submit" 
                                 disabled={loading}
-                                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-purple-900/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                                className="w-full bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-sky-900/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-2"
                             >
                                 {loading ? 'Authenticating...' : 'Secure Login'}
                             </button>
                         </form>
-                        
-                        <div className="mt-6 text-center">
-                            <p className="text-[10px] text-slate-600">
-                                This system is monitored. <br/>
-                                Contact administrator for credentials.
-                            </p>
-                        </div>
                     </div>
                 </div>
             );
@@ -200,6 +189,7 @@
         // --- LOGIC ---
         const [user, setUser] = useState(null);
         const [authChecking, setAuthChecking] = useState(true);
+        const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, error
 
         const [pairs, setPairs] = useState([]);
         const [filteredPairs, setFilteredPairs] = useState([]);
@@ -241,33 +231,41 @@
                     const savedHistory = data.tradeHistory || [];
                     const savedStats = data.stats || { wins: 0, losses: 0, winRate: 0, totalPnl: 0 };
 
+                    // IMPORTANT: Only update state if different to prevent loops, 
+                    // but here we trust the DB as source of truth on load/sync
                     setActiveTrades(savedActiveTrades);
                     setTradeHistory(savedHistory);
                     setStats(savedStats);
 
-                    // Sync Global Lock logic with saved data
+                    // --- RESUME LOGIC (CRITICAL FOR RELOADS) ---
                     if (savedActiveTrades.length > 0) {
                         isGlobalTradeActive.current = true;
-                        // Populate ref so strategy knows about active trade
+                        
+                        // Re-hydrate the strategy state for the active trade
                         const trade = savedActiveTrades[0];
                         const symbol = trade.pair.replace('/', '').replace('/USDT', 'USDT').toLowerCase();
+                        
                         if (!strategyStateRef.current[symbol]) {
+                            // Initialize empty state if not present
                             strategyStateRef.current[symbol] = { cumVol: 0, cumPV: 0, recentHighs: [], activeTrade: null };
                         }
+                        // Set the active trade in Ref so the algo picks it up when WebSocket connects
                         strategyStateRef.current[symbol].activeTrade = trade;
                     } else {
                         isGlobalTradeActive.current = false;
-                        // Clear active trade from all refs
                         Object.values(strategyStateRef.current).forEach(s => s.activeTrade = null);
                     }
                 } else {
-                    // Initialize doc if not exists
+                    // Create Initial Document
                     setDoc(doc(db, "users", user.uid), {
                         activeTrades: [],
                         tradeHistory: [],
                         stats: { wins: 0, losses: 0, winRate: 0, totalPnl: 0 }
                     }, { merge: true });
                 }
+            }, (error) => {
+                console.error("Firestore Read Error:", error);
+                // This usually happens if Rules are missing
             });
 
             return () => unsubscribe();
@@ -276,14 +274,18 @@
         // Helper to Save Data to Firestore
         const saveUserData = async (newActiveTrades, newHistory, newStats) => {
             if (!user) return;
+            setSaveStatus('saving');
             try {
                 await setDoc(doc(db, "users", user.uid), {
                     activeTrades: newActiveTrades,
                     tradeHistory: newHistory,
                     stats: newStats
                 }, { merge: true });
+                setSaveStatus('saved');
+                setTimeout(() => setSaveStatus('idle'), 2000);
             } catch (e) {
                 console.error("Error saving data:", e);
+                setSaveStatus('error');
             }
         };
 
@@ -401,20 +403,20 @@
             }
             const localHigh = Math.max(...state.recentHighs, candle.high);
 
-            // MANAGE ACTIVE TRADE (Logic Updated to use state but logic ref)
-            // Note: We use state.activeTrade (Ref) for speed, but syncing is handled by effect
+            // MANAGE ACTIVE TRADE (Resume logic integrated)
             if (state.activeTrade) {
                 const { tp, sl, entryPrice, pair } = state.activeTrade;
                 const currentPrice = candle.close;
                 const hitTP = candle.low <= tp;
                 const hitSL = candle.high >= sl;
+                
                 if (hitTP || hitSL) {
                     closeTrade(symbol, hitTP, hitTP ? tp : sl);
                     return; 
                 }
                 const pnlPercent = ((entryPrice - currentPrice) / entryPrice) * 100;
                 
-                // Update local state for UI PnL only (Don't save to DB on every tick)
+                // Update local state for UI PnL only (Don't save to DB on every tick to save writes)
                 setActiveTrades(prev => prev.map(t => {
                     if (t.pair === pair) {
                         return { ...t, currentPrice: currentPrice, pnl: pnlPercent };
@@ -456,23 +458,20 @@
                     setup: 'VWAP Micro Sweep'
                 };
 
-                // Optimistic Update
+                // Update State and DB
                 setActiveTrades(prev => [newTrade, ...prev]);
                 state.activeTrade = newTrade; 
                 isGlobalTradeActive.current = true; 
 
-                // Save to Firestore
                 saveUserData([newTrade], tradeHistory, stats);
             }
         };
 
         const closeTrade = (symbol, isWin, closePrice) => {
             const state = strategyStateRef.current[symbol];
-            // Safety check: if Ref is null but State has trade (rare sync issue), try to find in state
             let trade = state?.activeTrade;
             
             if (!trade) {
-                // Fallback: Find trade in activeTrades list matching symbol
                 const pairLabel = symbol.toUpperCase().replace('USDT', '/USDT');
                 trade = activeTrades.find(t => t.pair === pairLabel);
             }
@@ -492,13 +491,12 @@
             const newStats = {
                 wins: stats.wins + (isWin ? 1 : 0),
                 losses: stats.losses + (!isWin ? 1 : 0),
-                winRate: 0, // Recalc below
+                winRate: 0, 
                 totalPnl: stats.totalPnl + pnlPercent
             };
             const total = newStats.wins + newStats.losses;
             newStats.winRate = total > 0 ? ((newStats.wins / total) * 100).toFixed(1) : 0;
 
-            // Optimistic Update
             setTradeHistory(newHistory);
             setActiveTrades([]);
             setStats(newStats);
@@ -506,7 +504,6 @@
             if(state) state.activeTrade = null;
             setTimeout(() => { isGlobalTradeActive.current = false; }, 1000);
 
-            // Save to Firestore
             saveUserData([], newHistory, newStats);
         };
 
@@ -523,14 +520,13 @@
             
             const newHistory = [closedTrade, ...tradeHistory].slice(0, 50);
             
-            // Optimistic Update
             setTradeHistory(newHistory);
             setActiveTrades([]);
             
             if (state) state.activeTrade = null;
             isGlobalTradeActive.current = false;
 
-            // Save to Firestore
+            // Updated: Save to DB on Skip
             saveUserData([], newHistory, stats);
         };
 
@@ -542,7 +538,7 @@
         };
 
         useEffect(() => {
-            if (!user || !selectedPair) return; // Guard
+            if (!user || !selectedPair) return; 
             if (wsChartRef.current) wsChartRef.current.close();
             setPriceData([]);
             fetch(`https://api.binance.com/api/v3/klines?symbol=${selectedPair.symbol.toUpperCase()}&interval=1m&limit=100`)
@@ -603,8 +599,8 @@
         // --- AUTH LOADING STATE ---
         if (authChecking) {
             return (
-                <div className="h-screen flex items-center justify-center">
-                    <Activity className="w-10 h-10 text-purple-500 animate-spin" />
+                <div className="h-screen flex items-center justify-center bg-slate-950">
+                    <Activity className="w-10 h-10 text-sky-500 animate-spin" />
                 </div>
             );
         }
@@ -616,20 +612,23 @@
 
         // --- DASHBOARD UI ---
         return (
-            <div className="flex flex-col h-screen text-slate-200 overflow-hidden font-sans selection:bg-purple-500/30">
+            <div className="flex flex-col h-screen text-slate-200 overflow-hidden font-sans selection:bg-sky-500/30">
             
             {/* GLASS HEADER */}
             <header className="flex items-center justify-between px-6 py-4 glass-header z-50">
                 <div className="flex items-center gap-4">
-                    <div className="p-2 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg shadow-lg shadow-purple-900/20">
+                    <div className="p-2 bg-gradient-to-br from-sky-600 to-blue-600 rounded-lg shadow-lg shadow-sky-900/20">
                         <Microscope className="text-white w-6 h-6" />
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                            MICRO SCALP <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">PRO</span>
+                            MICRO SCALP <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-400">PRO</span>
                         </h1>
                         <p className="text-xs text-slate-400 font-medium tracking-wide flex items-center gap-1">
-                            <Cloud size={10} className="text-emerald-400" /> Cloud Sync Active
+                            {saveStatus === 'saving' && <span className="text-amber-400 animate-pulse flex items-center gap-1"><Cloud size={10} /> Saving...</span>}
+                            {saveStatus === 'saved' && <span className="text-emerald-400 flex items-center gap-1"><CheckCircle2 size={10} /> Synced</span>}
+                            {saveStatus === 'error' && <span className="text-rose-400 flex items-center gap-1"><AlertTriangle size={10} /> Save Failed</span>}
+                            {saveStatus === 'idle' && <span className="flex items-center gap-1"><Cloud size={10} className="text-slate-500" /> Online</span>}
                         </p>
                     </div>
                 </div>
@@ -689,11 +688,11 @@
                 <aside className="lg:col-span-3 glass-panel border-r border-r-slate-800/50 flex flex-col overflow-hidden m-2 ml-0 my-0 rounded-none lg:rounded-tr-none">
                 <div className="p-4 border-b border-slate-700/30 bg-slate-900/40">
                     <div className="relative group">
-                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500 group-focus-within:text-purple-400 transition-colors" />
+                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500 group-focus-within:text-sky-400 transition-colors" />
                         <input 
                             type="text" 
                             placeholder="Search Assets..." 
-                            className="w-full bg-slate-950/50 border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 text-slate-200 placeholder-slate-600 transition-all"
+                            className="w-full bg-slate-950/50 border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/20 text-slate-200 placeholder-slate-600 transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -711,7 +710,7 @@
                         onClick={() => setSelectedPair(pair)}
                         className={`w-full text-left px-4 py-3 rounded-lg border transition-all flex justify-between items-center group ${
                             selectedPair?.symbol === pair.symbol 
-                            ? 'bg-purple-900/20 border-purple-500/30 text-purple-100 shadow-inner' 
+                            ? 'bg-sky-900/20 border-sky-500/30 text-sky-100 shadow-inner' 
                             : 'bg-transparent border-transparent text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
                         }`}
                         >
@@ -719,7 +718,7 @@
                             <span className="font-bold text-sm block group-hover:translate-x-1 transition-transform">{pair.label}</span>
                             <span className="text-[10px] opacity-60">Vol: {(pair.vol / 1000000).toFixed(1)}M</span>
                         </div>
-                        <span className={`text-xs font-mono font-medium ${selectedPair?.symbol === pair.symbol ? 'text-purple-300' : 'text-slate-500'}`}>
+                        <span className={`text-xs font-mono font-medium ${selectedPair?.symbol === pair.symbol ? 'text-sky-300' : 'text-slate-500'}`}>
                             {formatPrice(pair.price)}
                         </span>
                         </button>
@@ -778,7 +777,7 @@
                             <Line 
                                 type="monotone" 
                                 dataKey="vwap" 
-                                stroke="#a855f7" 
+                                stroke="#0ea5e9" 
                                 strokeWidth={2} 
                                 dot={false} 
                                 strokeDasharray="6 4" 
@@ -789,7 +788,7 @@
                         </ResponsiveContainer>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-slate-600">
-                            <Activity className="w-12 h-12 mb-4 animate-bounce opacity-20 text-purple-500" />
+                            <Activity className="w-12 h-12 mb-4 animate-bounce opacity-20 text-sky-500" />
                             <p className="font-light tracking-wide">Initializing Data Stream...</p>
                         </div>
                     )}
@@ -797,9 +796,9 @@
                 
                 <div className="h-14 border-t border-slate-800/50 bg-slate-900/20 flex items-center justify-between px-6 backdrop-blur-sm">
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20">
-                            <div className="w-2.5 h-0.5 bg-purple-400"></div>
-                            <span className="text-[10px] font-bold text-purple-300">VWAP</span>
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20">
+                            <div className="w-2.5 h-0.5 bg-sky-400"></div>
+                            <span className="text-[10px] font-bold text-sky-300">VWAP</span>
                         </div>
                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                             <div className="w-2.5 h-0.5 bg-emerald-400"></div>
@@ -818,7 +817,7 @@
                     {/* ACTIVE TRADE SECTION */}
                     <div className="p-5 border-b border-slate-700/30 bg-slate-900/40">
                         <h3 className="font-bold text-slate-200 flex items-center gap-2 text-sm uppercase tracking-wider mb-1">
-                        <Layers className="w-4 h-4 text-purple-500" />
+                        <Layers className="w-4 h-4 text-sky-500" />
                         Active Position
                         </h3>
                         <p className="text-[10px] text-slate-500">
@@ -839,11 +838,11 @@
                             activeTrades.map(trade => (
                                 <div 
                                     key={trade.id} 
-                                    className="bg-slate-900/80 border border-purple-500/30 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.1)] relative overflow-hidden group animate-in slide-in-from-right duration-500 cursor-pointer hover:border-purple-400 transition-colors"
+                                    className="bg-slate-900/80 border border-sky-500/30 rounded-xl shadow-[0_0_20px_rgba(14,165,233,0.1)] relative overflow-hidden group animate-in slide-in-from-right duration-500 cursor-pointer hover:border-sky-400 transition-colors"
                                     onClick={() => handleTradeClick(trade.pair)}
                                 >
                                     {/* GLOW BAR */}
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-indigo-500"></div>
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-sky-500 to-blue-500"></div>
                                     
                                     <div className="p-4">
                                         <div className="flex justify-between items-start mb-3">
@@ -907,7 +906,7 @@
                                     <div className="flex items-center gap-3">
                                         {h.status === 'WIN' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : h.status === 'SKIPPED' ? <SkipForward className="w-4 h-4 text-slate-500" /> : <XCircle className="w-4 h-4 text-rose-500" />}
                                         <div>
-                                            <span className="font-bold text-slate-300 block group-hover:text-purple-300 transition-colors">{h.pair}</span>
+                                            <span className="font-bold text-slate-300 block group-hover:text-sky-300 transition-colors">{h.pair}</span>
                                             <span className="text-[10px] text-slate-500">{h.closeTime}</span>
                                         </div>
                                     </div>
