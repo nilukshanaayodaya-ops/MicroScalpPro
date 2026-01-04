@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MICRO SCALP PRO</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            background-color: #030712; 
+            color: #e2e8f0; 
+            font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #020617 60%);
+            background-attachment: fixed;
+        }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .glass-header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(244, 63, 94, 0.2); }
+            50% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.6); }
+        }
+        .animate-glow { animation: pulse-glow 2s infinite; }
+        
+        /* Login Input Auto-fill fix */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
+            -webkit-text-fill-color: white !important;
+        }
+    </style>
+    
+    <!-- Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "react-dom": "https://esm.sh/react-dom@18.2.0",
+            "recharts": "https://esm.sh/recharts@2.12.0?external=react,react-dom",
+            "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react,react-dom"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- App Script -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef, useMemo } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+        import { Activity, Zap, Layers, AlertTriangle, ArrowRight, TrendingUp, TrendingDown, History, CheckCircle2, XCircle, Wallet, Search, Lock, Microscope, BarChart3, X, SkipForward, LayoutGrid, Radio, LogOut, KeyRound, Mail } from 'lucide-react';
+        
+        // --- FIREBASE IMPORTS ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7u0I9JVLeKz39CAh4iTf4UMkTr6uxE3o",
+            authDomain: "micro-scalp-pro.firebaseapp.com",
+            projectId: "micro-scalp-pro",
+            storageBucket: "micro-scalp-pro.firebasestorage.app",
+            messagingSenderId: "641450199400",
+            appId: "1:641450199400:web:c6665f914e95adad00eedd",
+            measurementId: "G-ECV3ZPMJ19"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // --- LOGIN COMPONENT ---
+        const LoginScreen = ({ onLogin }) => {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    // Auth listener in parent will handle the transition
+                } catch (err) {
+                    console.error(err);
+                    setError('Invalid credentials. Access denied.');
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="glass-panel p-8 rounded-2xl w-full max-w-md shadow-[0_0_50px_rgba(168,85,247,0.15)] border border-purple-500/20 relative overflow-hidden">
+                        {/* Decorative Elements */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+                        <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl"></div>
+                        
+                        <div className="flex flex-col items-center mb-8">
+                            <div className="p-3 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl shadow-lg shadow-purple-900/30 mb-4">
+                                <Microscope className="text-white w-8 h-8" />
+                            </div>
+                            <h1 className="text-2xl font-bold text-white tracking-tight">MICRO SCALP <span className="text-purple-400">PRO</span></h1>
+                            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Authorized Access Only</p>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-xs text-slate-400 font-medium ml-1">Email</label>
+                                <div className="relative group">
+                                    <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-500 group-focus-within:text-purple-400 transition-colors" />
+                                    <input 
+                                        type="email" 
+                                        required
+                                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-slate-200 placeholder-slate-600 transition-all"
+                                        placeholder="admin@microscalp.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-1">
+                                <label className="text-xs text-slate-400 font-medium ml-1">Password</label>
+                                <div className="relative group">
+                                    <KeyRound className="absolute left-3 top-3 w-4 h-4 text-slate-500 group-focus-within:text-purple-400 transition-colors" />
+                                    <input 
+                                        type="password" 
+                                        required
+                                        className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 text-slate-200 placeholder-slate-600 transition-all"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            {error && (
+                                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg flex items-center gap-2">
+                                    <AlertTriangle className="w-4 h-4 text-rose-400" />
+                                    <span className="text-xs text-rose-300">{error}</span>
+                                </div>
+                            )}
+
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-purple-900/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                            >
+                                {loading ? 'Authenticating...' : 'Secure Login'}
+                            </button>
+                        </form>
+                        
+                        <div className="mt-6 text-center">
+                            <p className="text-[10px] text-slate-600">
+                                This system is monitored. <br/>
+                                Contact administrator for credentials.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const OrderFlowDashboard = () => {
+        // --- LOGIC (UNCHANGED) ---
+        const [user, setUser] = useState(null);
+        const [authChecking, setAuthChecking] = useState(true);
+
+        const [pairs, setPairs] = useState([]);
+        const [filteredPairs, setFilteredPairs] = useState([]);
+        const [searchTerm, setSearchTerm] = useState('');
+        const [selectedPair, setSelectedPair] = useState(null); 
+        const [priceData, setPriceData] = useState([]);
+        const [currentPrice, setCurrentPrice] = useState(0);
+        const [connectionStatus, setConnectionStatus] = useState('Initializing...');
+        const [activeTrades, setActiveTrades] = useState([]); 
+        const [tradeHistory, setTradeHistory] = useState([]); 
+        const [stats, setStats] = useState({ wins: 0, losses: 0, winRate: 0, totalPnl: 0 });
+        const [scannedCount, setScannedCount] = useState(0);
+        const wsChartRef = useRef(null); 
+        const wsScannerRef = useRef(null); 
+        const isGlobalTradeActive = useRef(false);
+        const strategyStateRef = useRef({}); 
+
+        // --- AUTH LISTENER ---
+        useEffect(() => {
+            const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                setUser(currentUser);
+                setAuthChecking(false);
+            });
+            return () => unsubscribe();
+        }, []);
+
+        const handleLogout = async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Error signing out: ", error);
+            }
+        };
+
+        const formatPrice = (price) => {
+            const p = parseFloat(price);
+            if (isNaN(p) || p === 0) return '0.00';
+            if (p < 0.00001) return p.toFixed(8);
+            if (p < 0.01) return p.toFixed(7);
+            if (p < 1) return p.toFixed(6);      
+            if (p < 10) return p.toFixed(4);     
+            if (p < 1000) return p.toFixed(3);   
+            return p.toFixed(2);                 
+        };
+
+        const formatPnL = (val) => {
+            return val > 0 ? `+${val.toFixed(2)}%` : `${val.toFixed(2)}%`;
+        };
+
+        useEffect(() => {
+            if (!user) return; // Stop fetching if not logged in
+
+            const fetchPairs = async () => {
+            try {
+                setConnectionStatus('Connecting...');
+                const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                const data = await response.json();
+                
+                const usdtPairs = data
+                .filter(s => s.symbol.endsWith('USDT') && parseFloat(s.volume) > 0)
+                .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)) 
+                .slice(0, 100); 
+
+                const formattedPairs = usdtPairs.map(s => ({
+                label: s.symbol.replace('USDT', '/USDT'),
+                symbol: s.symbol.toLowerCase(),
+                price: parseFloat(s.lastPrice),
+                vol: parseFloat(s.quoteVolume)
+                }));
+
+                setPairs(formattedPairs);
+                setFilteredPairs(formattedPairs);
+                
+                const btc = formattedPairs.find(p => p.symbol === 'btcusdt');
+                if (btc) setSelectedPair(btc);
+
+                startScanner(formattedPairs.slice(0, 50)); 
+                setScannedCount(50);
+
+            } catch (error) {
+                console.error("Error fetching pairs:", error);
+                setConnectionStatus('API Error');
+            }
+            };
+            fetchPairs();
+        }, [user]); // Run only when user is present
+
+        useEffect(() => {
+            if (!searchTerm) {
+            setFilteredPairs(pairs);
+            } else {
+            setFilteredPairs(pairs.filter(p => p.label.toLowerCase().includes(searchTerm.toLowerCase())));
+            }
+        }, [searchTerm, pairs]);
+
+        const startScanner = (topPairs) => {
+            if (wsScannerRef.current) wsScannerRef.current.close();
+            topPairs.forEach(p => {
+                if (!strategyStateRef.current[p.symbol]) {
+                    strategyStateRef.current[p.symbol] = {
+                        cumVol: p.vol, 
+                        cumPV: p.vol * p.price,
+                        recentHighs: [],
+                        activeTrade: null 
+                    };
+                }
+            });
+            const streams = topPairs.map(p => `${p.symbol}@kline_1m`).join('/');
+            const wsUrl = `wss://stream.binance.com:9443/stream?streams=${streams}`;
+            const ws = new WebSocket(wsUrl);
+            wsScannerRef.current = ws;
+            ws.onmessage = (event) => {
+                const payload = JSON.parse(event.data);
+                const k = payload.data.k; 
+                const symbol = payload.data.s.toLowerCase(); 
+                const candle = {
+                    close: parseFloat(k.c),
+                    high: parseFloat(k.h),
+                    low: parseFloat(k.l),
+                    open: parseFloat(k.o),
+                    volume: parseFloat(k.v),
+                    delta: (parseFloat(k.Q) - parseFloat(k.q)), 
+                    isClosed: k.x
+                };
+                manageTradesAndSignals(symbol, candle);
+            };
+        };
+
+        const manageTradesAndSignals = (symbol, candle) => {
+            const state = strategyStateRef.current[symbol];
+            if (!state) return;
+            state.cumVol += candle.volume;
+            state.cumPV += (candle.close * candle.volume);
+            const vwap = state.cumPV / (state.cumVol || 1); 
+            if (candle.isClosed) {
+                state.recentHighs.push(candle.high);
+                if (state.recentHighs.length > 5) state.recentHighs.shift();
+            }
+            const localHigh = Math.max(...state.recentHighs, candle.high);
+
+            if (state.activeTrade) {
+                const { tp, sl, entryPrice, pair } = state.activeTrade;
+                const currentPrice = candle.close;
+                const hitTP = candle.low <= tp;
+                const hitSL = candle.high >= sl;
+                if (hitTP || hitSL) {
+                    closeTrade(symbol, hitTP, hitTP ? tp : sl);
+                    return; 
+                }
+                const pnlPercent = ((entryPrice - currentPrice) / entryPrice) * 100;
+                setActiveTrades(prev => prev.map(t => {
+                    if (t.pair === pair) {
+                        return { ...t, currentPrice: currentPrice, pnl: pnlPercent };
+                    }
+                    return t;
+                }));
+                return; 
+            }
+
+            if (isGlobalTradeActive.current) return;
+            const distToVWAP = Math.abs(candle.close - vwap) / vwap;
+            const isNearVWAP = distToVWAP < 0.003; 
+            if (!isNearVWAP) return; 
+
+            const isSweep = candle.high >= localHigh;
+            const bodySize = Math.abs(candle.close - candle.open);
+            const wickSize = candle.high - Math.max(candle.close, candle.open);
+            const isWickReject = wickSize > bodySize; 
+            const isAbsorption = candle.delta < 0 || (candle.delta < (candle.volume * 0.1)); 
+            const isEntryTrigger = candle.close < localHigh;
+
+            if (isSweep && isWickReject && isAbsorption && isEntryTrigger) {
+                const pairLabel = symbol.toUpperCase().replace('USDT', '/USDT');
+                const entryPrice = candle.close;
+                const stopLoss = Math.max(candle.high * 1.001, entryPrice * 1.002); 
+                const risk = stopLoss - entryPrice;
+                const takeProfit = entryPrice - (risk * 1.5); 
+                const newTrade = {
+                    id: Date.now(),
+                    pair: pairLabel,
+                    type: 'SHORT',
+                    entryPrice: entryPrice,
+                    currentPrice: entryPrice,
+                    sl: stopLoss,
+                    tp: takeProfit,
+                    pnl: 0,
+                    startTime: new Date().toLocaleTimeString(),
+                    delta: candle.delta.toFixed(2),
+                    setup: 'VWAP Micro Sweep'
+                };
+                setActiveTrades(prev => [newTrade, ...prev]);
+                state.activeTrade = newTrade; 
+                isGlobalTradeActive.current = true; 
+            }
+        };
+
+        const closeTrade = (symbol, isWin, closePrice) => {
+            const state = strategyStateRef.current[symbol];
+            if (!state || !state.activeTrade) return;
+            const trade = state.activeTrade;
+            const pnlPercent = ((trade.entryPrice - closePrice) / trade.entryPrice) * 100;
+            const closedTrade = {
+                ...trade,
+                closePrice: closePrice,
+                finalPnl: pnlPercent,
+                status: isWin ? 'WIN' : 'LOSS',
+                closeTime: new Date().toLocaleTimeString()
+            };
+            setTradeHistory(prev => [closedTrade, ...prev].slice(0, 50)); 
+            setActiveTrades(prev => prev.filter(t => t.pair !== trade.pair));
+            setStats(prev => {
+                const wins = prev.wins + (isWin ? 1 : 0);
+                const losses = prev.losses + (!isWin ? 1 : 0);
+                const total = wins + losses;
+                return {
+                    wins,
+                    losses,
+                    winRate: total > 0 ? ((wins / total) * 100).toFixed(1) : 0,
+                    totalPnl: prev.totalPnl + pnlPercent 
+                };
+            });
+            state.activeTrade = null;
+            setTimeout(() => { isGlobalTradeActive.current = false; }, 1000);
+        };
+
+        const skipTrade = (trade) => {
+            const symbol = trade.pair.replace('/', '').replace('/USDT', 'USDT').toLowerCase();
+            const state = strategyStateRef.current[symbol];
+            const closedTrade = {
+                ...trade,
+                status: 'SKIPPED',
+                closeTime: new Date().toLocaleTimeString(),
+                finalPnl: trade.pnl
+            };
+            setTradeHistory(prev => [closedTrade, ...prev].slice(0, 50));
+            setActiveTrades(prev => prev.filter(t => t.id !== trade.id));
+            if (state) state.activeTrade = null;
+            isGlobalTradeActive.current = false;
+        };
+
+        const handleTradeClick = (pairLabel) => {
+            const pair = pairs.find(p => p.label === pairLabel);
+            if (pair) {
+                setSelectedPair(pair);
+            }
+        };
+
+        useEffect(() => {
+            if (!user || !selectedPair) return; // Guard for auth
+            if (wsChartRef.current) wsChartRef.current.close();
+            setPriceData([]);
+            fetch(`https://api.binance.com/api/v3/klines?symbol=${selectedPair.symbol.toUpperCase()}&interval=1m&limit=100`)
+                .then(res => res.json())
+                .then(data => {
+                    let cumVol = 0;
+                    let cumPV = 0;
+                    const formatted = data.map(d => {
+                        const close = parseFloat(d[4]);
+                        const vol = parseFloat(d[5]);
+                        cumVol += vol;
+                        cumPV += (close * vol);
+                        return {
+                            time: new Date(d[0]).toLocaleTimeString(),
+                            close: close,
+                            vwap: cumPV / cumVol, 
+                            delta: 0 
+                        };
+                    });
+                    setPriceData(formatted);
+                    setCurrentPrice(formatted[formatted.length-1].close);
+                })
+                .catch(err => console.log("Chart err", err));
+
+            const wsUrl = `wss://stream.binance.com:9443/stream?streams=${selectedPair.symbol}@kline_1m/${selectedPair.symbol}@aggTrade`;
+            const ws = new WebSocket(wsUrl);
+            wsChartRef.current = ws;
+            ws.onopen = () => setConnectionStatus('Connected');
+            ws.onmessage = (event) => {
+            const payload = JSON.parse(event.data);
+            const message = payload.data; 
+            if (message.e === 'aggTrade') {
+                const price = parseFloat(message.p);
+                setCurrentPrice(price);
+            }
+            if (message.e === 'kline') {
+                const k = message.k;
+                const newCandle = {
+                time: new Date(k.t).toLocaleTimeString(),
+                close: parseFloat(k.c),
+                vwap: parseFloat(k.c), 
+                delta: 0
+                };
+                if (k.x) { 
+                setPriceData(prev => {
+                    const last = prev[prev.length - 1];
+                    const newVwap = (last.vwap * 20 + parseFloat(k.c) * parseFloat(k.v)) / (20 + parseFloat(k.v)); 
+                    return [...prev.slice(1), { ...newCandle, vwap: newVwap }];
+                });
+                }
+            }
+            };
+            return () => {
+            if (ws.readyState === 1) ws.close();
+            };
+        }, [selectedPair, user]); // Re-run when pair changes OR login happens
+
+        // --- AUTH LOADING STATE ---
+        if (authChecking) {
+            return (
+                <div className="h-screen flex items-center justify-center">
+                    <Activity className="w-10 h-10 text-purple-500 animate-spin" />
+                </div>
+            );
+        }
+
+        // --- LOGIN SCREEN ---
+        if (!user) {
+            return <LoginScreen />;
+        }
+
+        // --- DASHBOARD UI ---
+        return (
+            <div className="flex flex-col h-screen text-slate-200 overflow-hidden font-sans selection:bg-purple-500/30">
+            
+            {/* GLASS HEADER */}
+            <header className="flex items-center justify-between px-6 py-4 glass-header z-50">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg shadow-lg shadow-purple-900/20">
+                        <Microscope className="text-white w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                            MICRO SCALP <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">PRO</span>
+                        </h1>
+                        <p className="text-xs text-slate-400 font-medium tracking-wide">VWAP Absorption Engine • v2.0</p>
+                    </div>
+                </div>
+                
+                {/* STATS CAPSULES */}
+                <div className="flex gap-4 items-center glass-panel px-6 py-2 rounded-xl">
+                    <div className="text-center px-4 border-r border-slate-700/50">
+                        <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Win Rate</div>
+                        <div className={`text-xl font-bold font-mono ${stats.winRate > 50 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]' : 'text-slate-200'}`}>
+                            {stats.winRate}%
+                        </div>
+                    </div>
+                    <div className="text-center px-4 border-r border-slate-700/50">
+                        <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Net PnL</div>
+                        <div className={`text-xl font-bold font-mono ${stats.totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {formatPnL(stats.totalPnl)}
+                        </div>
+                    </div>
+                    <div className="flex gap-3 px-2">
+                        <div className="flex flex-col items-center">
+                            <span className="text-emerald-400 font-bold text-sm">{stats.wins}</span>
+                            <span className="text-[9px] text-slate-500 uppercase">Win</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <span className="text-rose-400 font-bold text-sm">{stats.losses}</span>
+                            <span className="text-[9px] text-slate-500 uppercase">Loss</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <div className={`hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all duration-300 ${
+                        activeTrades.length > 0 
+                        ? 'bg-rose-950/30 border-rose-500/30 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.1)]' 
+                        : 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300'
+                    }`}>
+                        {activeTrades.length > 0 
+                            ? <><Lock className="w-3 h-3" /> <span>LOCKED</span></>
+                            : <><Radio className="w-3 h-3 animate-pulse" /> <span>SCANNING</span></>
+                        }
+                    </div>
+                    
+                    <button 
+                        onClick={handleLogout}
+                        className="bg-slate-800 hover:bg-rose-900/30 text-slate-400 hover:text-rose-300 p-2 rounded-lg transition-colors border border-transparent hover:border-rose-500/30"
+                        title="Sign Out"
+                    >
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                </div>
+            </header>
+
+            {/* MAIN CONTENT GRID */}
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden">
+                
+                {/* LEFT: SCANNER (3 Cols) */}
+                <aside className="lg:col-span-3 glass-panel border-r border-r-slate-800/50 flex flex-col overflow-hidden m-2 ml-0 my-0 rounded-none lg:rounded-tr-none">
+                <div className="p-4 border-b border-slate-700/30 bg-slate-900/40">
+                    <div className="relative group">
+                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500 group-focus-within:text-purple-400 transition-colors" />
+                        <input 
+                            type="text" 
+                            placeholder="Search Assets..." 
+                            className="w-full bg-slate-950/50 border border-slate-700/50 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 text-slate-200 placeholder-slate-600 transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex justify-between items-center mt-3 text-xs text-slate-500 font-medium">
+                        <span>Top Volume Pairs</span>
+                        <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-400">{filteredPairs.length}</span>
+                    </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                    {filteredPairs.map(pair => (
+                        <button
+                        key={pair.symbol}
+                        onClick={() => setSelectedPair(pair)}
+                        className={`w-full text-left px-4 py-3 rounded-lg border transition-all flex justify-between items-center group ${
+                            selectedPair?.symbol === pair.symbol 
+                            ? 'bg-purple-900/20 border-purple-500/30 text-purple-100 shadow-inner' 
+                            : 'bg-transparent border-transparent text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                        }`}
+                        >
+                        <div>
+                            <span className="font-bold text-sm block group-hover:translate-x-1 transition-transform">{pair.label}</span>
+                            <span className="text-[10px] opacity-60">Vol: {(pair.vol / 1000000).toFixed(1)}M</span>
+                        </div>
+                        <span className={`text-xs font-mono font-medium ${selectedPair?.symbol === pair.symbol ? 'text-purple-300' : 'text-slate-500'}`}>
+                            {formatPrice(pair.price)}
+                        </span>
+                        </button>
+                    ))}
+                </div>
+                </aside>
+
+                {/* MIDDLE: CHART (6 Cols) */}
+                <main className="lg:col-span-6 flex flex-col relative bg-slate-950/30">
+                <div className="absolute top-4 left-6 z-10 pointer-events-none">
+                    <div className="glass-panel px-5 py-3 rounded-xl shadow-2xl">
+                    <div className="text-sm font-semibold text-slate-400 mb-1 flex items-center gap-2">
+                        {selectedPair?.label} 
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    </div>
+                    <div className="text-3xl font-bold text-white font-mono tracking-tight drop-shadow-lg">
+                        {currentPrice ? formatPrice(currentPrice) : '---'}
+                    </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 w-full pt-20 px-2">
+                    {priceData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={priceData}>
+                            <defs>
+                                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <YAxis 
+                                domain={['auto', 'auto']} 
+                                orientation="right" 
+                                tick={{fontSize: 10, fill: '#64748b', fontFamily: 'JetBrains Mono'}} 
+                                tickFormatter={(val) => formatPrice(val)} 
+                                axisLine={false}
+                                tickLine={false}
+                                width={60}
+                            />
+                            <Tooltip 
+                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)' }} 
+                                formatter={(value, name) => [formatPrice(value), name === 'vwap' ? 'VWAP' : 'Price']}
+                                labelStyle={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px' }}
+                                itemStyle={{ fontSize: '12px', fontFamily: 'JetBrains Mono' }}
+                            />
+                            <Line 
+                                type="monotone" 
+                                dataKey="close" 
+                                stroke="#10b981" 
+                                strokeWidth={2} 
+                                dot={false} 
+                                activeDot={{ r: 4, strokeWidth: 0 }}
+                                animationDuration={300}
+                            />
+                            <Line 
+                                type="monotone" 
+                                dataKey="vwap" 
+                                stroke="#a855f7" 
+                                strokeWidth={2} 
+                                dot={false} 
+                                strokeDasharray="6 4" 
+                                strokeOpacity={0.7}
+                                animationDuration={300}
+                            />
+                        </LineChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-600">
+                            <Activity className="w-12 h-12 mb-4 animate-bounce opacity-20 text-purple-500" />
+                            <p className="font-light tracking-wide">Initializing Data Stream...</p>
+                        </div>
+                    )}
+                </div>
+                
+                <div className="h-14 border-t border-slate-800/50 bg-slate-900/20 flex items-center justify-between px-6 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20">
+                            <div className="w-2.5 h-0.5 bg-purple-400"></div>
+                            <span className="text-[10px] font-bold text-purple-300">VWAP</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                            <div className="w-2.5 h-0.5 bg-emerald-400"></div>
+                            <span className="text-[10px] font-bold text-emerald-300">Price</span>
+                        </div>
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono">
+                        TIMEFRAME: <span className="text-slate-300">1m SCALP</span>
+                    </div>
+                </div>
+                </main>
+
+                {/* RIGHT: TRADES (3 Cols) */}
+                <aside className="lg:col-span-3 glass-panel border-l border-l-slate-800/50 flex flex-col m-2 mr-0 my-0 rounded-none lg:rounded-tl-none">
+                    
+                    {/* ACTIVE TRADE SECTION */}
+                    <div className="p-5 border-b border-slate-700/30 bg-slate-900/40">
+                        <h3 className="font-bold text-slate-200 flex items-center gap-2 text-sm uppercase tracking-wider mb-1">
+                        <Layers className="w-4 h-4 text-purple-500" />
+                        Active Position
+                        </h3>
+                        <p className="text-[10px] text-slate-500">
+                            {activeTrades.length > 0 ? 'Managing live position...' : 'Waiting for setup trigger...'}
+                        </p>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-950/20 relative">
+                        {activeTrades.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-slate-800 rounded-xl m-2">
+                                <div className="w-12 h-12 rounded-full bg-slate-800/50 flex items-center justify-center mb-3">
+                                    <BarChart3 className="w-6 h-6 text-slate-600" />
+                                </div>
+                                <p className="text-sm font-medium text-slate-500">Scanner Idle</p>
+                                <p className="text-[10px] text-slate-600 mt-1">Watching VWAP Interactions</p>
+                            </div>
+                        ) : (
+                            activeTrades.map(trade => (
+                                <div 
+                                    key={trade.id} 
+                                    className="bg-slate-900/80 border border-purple-500/30 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.1)] relative overflow-hidden group animate-in slide-in-from-right duration-500 cursor-pointer hover:border-purple-400 transition-colors"
+                                    onClick={() => handleTradeClick(trade.pair)}
+                                >
+                                    {/* GLOW BAR */}
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-indigo-500"></div>
+                                    
+                                    <div className="p-4">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div>
+                                                <span className="font-bold text-white text-lg tracking-tight">{trade.pair}</span>
+                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                    <span className="bg-rose-500/20 text-rose-300 text-[9px] px-1.5 py-0.5 rounded border border-rose-500/30 font-bold uppercase">SHORT</span>
+                                                    <span className="text-[9px] text-slate-500 font-mono">{trade.setup}</span>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); skipTrade(trade); }}
+                                                className="p-1.5 hover:bg-rose-500/20 rounded-lg text-slate-500 hover:text-rose-400 transition-colors"
+                                                title="Close Position"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+
+                                        {/* PNL CARD */}
+                                        <div className="mb-4 p-3 bg-slate-950/50 rounded-lg border border-slate-800 flex justify-between items-center hover:bg-slate-900/80 transition-colors">
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unrealized PnL</span>
+                                            <span className={`text-xl font-bold font-mono tracking-tight ${trade.pnl >= 0 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]' : 'text-rose-400'}`}>
+                                                {formatPnL(trade.pnl)}
+                                            </span>
+                                        </div>
+
+                                        {/* STATS GRID */}
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="bg-slate-800/30 p-2 rounded-lg text-center border border-slate-700/30">
+                                                <div className="text-[9px] text-slate-500 uppercase mb-0.5">Entry</div>
+                                                <div className="text-[11px] text-white font-mono">{formatPrice(trade.entryPrice)}</div>
+                                            </div>
+                                            <div className="bg-rose-900/10 p-2 rounded-lg text-center border border-rose-500/20">
+                                                <div className="text-[9px] text-rose-400 uppercase mb-0.5">Stop</div>
+                                                <div className="text-[11px] text-rose-300 font-mono">{formatPrice(trade.sl)}</div>
+                                            </div>
+                                            <div className="bg-emerald-900/10 p-2 rounded-lg text-center border border-emerald-500/20">
+                                                <div className="text-[9px] text-emerald-400 uppercase mb-0.5">Target</div>
+                                                <div className="text-[11px] text-emerald-300 font-mono">{formatPrice(trade.tp)}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {/* HISTORY */}
+                    <div className="h-1/3 border-t border-slate-800/50 bg-slate-900/30 flex flex-col">
+                        <div className="px-5 py-3 border-b border-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <History className="w-3.5 h-3.5" /> Recent Log
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
+                            {tradeHistory.map((h, i) => (
+                                <div 
+                                    key={i} 
+                                    className="flex justify-between items-center px-5 py-3 border-b border-slate-800/30 hover:bg-slate-800/50 transition-colors text-xs cursor-pointer group"
+                                    onClick={() => handleTradeClick(h.pair)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {h.status === 'WIN' ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : h.status === 'SKIPPED' ? <SkipForward className="w-4 h-4 text-slate-500" /> : <XCircle className="w-4 h-4 text-rose-500" />}
+                                        <div>
+                                            <span className="font-bold text-slate-300 block group-hover:text-purple-300 transition-colors">{h.pair}</span>
+                                            <span className="text-[10px] text-slate-500">{h.closeTime}</span>
+                                        </div>
+                                    </div>
+                                    <span className={`font-mono font-bold px-2 py-0.5 rounded ${
+                                        h.status === 'WIN' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
+                                        h.status === 'SKIPPED' ? 'bg-slate-700/30 text-slate-400 border border-slate-600/30' : 
+                                        'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                    }`}>
+                                        {formatPnL(h.finalPnl)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                </aside>
+
+            </div>
+            </div>
+        );
+        };
+        
+        const root = createRoot(document.getElementById('root'));
+        root.render(<OrderFlowDashboard />);
+    </script>
+</body>
+</html>
