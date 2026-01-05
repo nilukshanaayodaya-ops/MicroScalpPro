@@ -15,7 +15,7 @@
     <style>
         /* Modern Professional Dark Theme */
         body { 
-            background-color: #020617; /* Slate 950 */
+            background-color: #020617; 
             color: #e2e8f0; 
             font-family: 'Inter', sans-serif;
             background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 80%);
@@ -23,7 +23,6 @@
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
-        /* Clean Glass Panels */
         .glass-panel {
             background: rgba(15, 23, 42, 0.7);
             backdrop-filter: blur(16px);
@@ -36,6 +35,12 @@
             border-bottom: 1px solid rgba(51, 65, 85, 0.5);
         }
         
+        /* Modal Backdrop */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -74,28 +79,30 @@
         import React, { useState, useEffect, useRef, useMemo } from 'react';
         import { createRoot } from 'react-dom/client';
         import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-        import { Activity, Zap, Layers, AlertTriangle, ArrowRight, TrendingUp, TrendingDown, History, CheckCircle2, XCircle, Wallet, Search, Lock, Microscope, BarChart3, X, SkipForward, LayoutGrid, Radio, LogOut, KeyRound, Mail, Cloud, Save } from 'lucide-react';
+        import { Activity, Zap, Layers, AlertTriangle, ArrowRight, TrendingUp, TrendingDown, History, CheckCircle2, XCircle, Wallet, Search, Lock, Microscope, BarChart3, X, SkipForward, LayoutGrid, Radio, LogOut, KeyRound, Mail, Cloud, Save, Filter, FileText, ChevronRight } from 'lucide-react';
         
-        // --- FIREBASE IMPORTS (Standard ESM) ---
+        // --- FIREBASE IMPORTS (Modular SDK) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
-        // --- YOUR FIREBASE CONFIGURATION (From Request) ---
+        // --- NEW FIREBASE CONFIGURATION (PROVIDED BY USER) ---
         const firebaseConfig = {
-            apiKey: "AIzaSyA7u0I9JVLeKz39CAh4iTf4UMkTr6uxE3o",
-            authDomain: "micro-scalp-pro.firebaseapp.com",
-            projectId: "micro-scalp-pro",
-            storageBucket: "micro-scalp-pro.firebasestorage.app",
-            messagingSenderId: "641450199400",
-            appId: "1:641450199400:web:c6665f914e95adad00eedd",
-            measurementId: "G-ECV3ZPMJ19"
+            apiKey: "AIzaSyDaChufvKgEOMz1aL9hnQTK1LUp7UUDits",
+            authDomain: "micro-scalp-pro-new.firebaseapp.com",
+            projectId: "micro-scalp-pro-new",
+            storageBucket: "micro-scalp-pro-new.firebasestorage.app",
+            messagingSenderId: "691639372550",
+            appId: "1:691639372550:web:8d54145a5663dcdf0d2c87",
+            measurementId: "G-SX8EXYSZJ7"
         };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const analytics = getAnalytics(app); // Analytics Initialized
 
         // --- LOGIN COMPONENT ---
         const LoginScreen = ({ onLogin }) => {
@@ -115,7 +122,7 @@
                     if (err.code === 'auth/invalid-credential') {
                         setError('Invalid Email or Password.');
                     } else {
-                        setError('Connection error. Check console.');
+                        setError('Connection error or account not found.');
                     }
                 }
                 setLoading(false);
@@ -125,7 +132,6 @@
                 <div className="min-h-screen flex items-center justify-center p-4">
                     <div className="glass-panel p-8 rounded-2xl w-full max-w-md shadow-2xl border border-slate-700/50 relative overflow-hidden bg-slate-900/80">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-sky-500 to-blue-600"></div>
-                        
                         <div className="flex flex-col items-center mb-8">
                             <div className="p-3 bg-gradient-to-br from-sky-600 to-blue-700 rounded-xl shadow-lg shadow-sky-900/30 mb-4">
                                 <Microscope className="text-white w-8 h-8" />
@@ -133,50 +139,28 @@
                             <h1 className="text-2xl font-bold text-white tracking-tight">MICRO SCALP <span className="text-sky-400">PRO</span></h1>
                             <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-medium">System Access</p>
                         </div>
-
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-xs text-slate-300 font-semibold ml-1">Email</label>
                                 <div className="relative group">
                                     <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-500 group-focus-within:text-sky-400 transition-colors" />
-                                    <input 
-                                        type="email" 
-                                        required
-                                        className="w-full bg-slate-950/60 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 text-slate-200 placeholder-slate-600 transition-all"
-                                        placeholder="admin@microscalp.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
+                                    <input type="email" required className="w-full bg-slate-950/60 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 text-slate-200 placeholder-slate-600 transition-all" placeholder="admin@microscalp.com" value={email} onChange={(e) => setEmail(e.target.value)} />
                                 </div>
                             </div>
-                            
                             <div className="space-y-1">
                                 <label className="text-xs text-slate-300 font-semibold ml-1">Password</label>
                                 <div className="relative group">
                                     <KeyRound className="absolute left-3 top-3 w-4 h-4 text-slate-500 group-focus-within:text-sky-400 transition-colors" />
-                                    <input 
-                                        type="password" 
-                                        required
-                                        className="w-full bg-slate-950/60 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 text-slate-200 placeholder-slate-600 transition-all"
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
+                                    <input type="password" required className="w-full bg-slate-950/60 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 text-slate-200 placeholder-slate-600 transition-all" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
                                 </div>
                             </div>
-
                             {error && (
                                 <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg flex items-center gap-2">
                                     <AlertTriangle className="w-4 h-4 text-rose-400" />
                                     <span className="text-xs text-rose-300">{error}</span>
                                 </div>
                             )}
-
-                            <button 
-                                type="submit" 
-                                disabled={loading}
-                                className="w-full bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-sky-900/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-2"
-                            >
+                            <button type="submit" disabled={loading} className="w-full bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-sky-900/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-2">
                                 {loading ? 'Authenticating...' : 'Secure Login'}
                             </button>
                         </form>
@@ -189,7 +173,7 @@
         // --- LOGIC ---
         const [user, setUser] = useState(null);
         const [authChecking, setAuthChecking] = useState(true);
-        const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, error
+        const [saveStatus, setSaveStatus] = useState('idle');
 
         const [pairs, setPairs] = useState([]);
         const [filteredPairs, setFilteredPairs] = useState([]);
@@ -199,16 +183,41 @@
         const [currentPrice, setCurrentPrice] = useState(0);
         const [connectionStatus, setConnectionStatus] = useState('Initializing...');
         
-        // Data State (Synced with Firestore)
+        // Data State
         const [activeTrades, setActiveTrades] = useState([]); 
         const [tradeHistory, setTradeHistory] = useState([]); 
         const [stats, setStats] = useState({ wins: 0, losses: 0, winRate: 0, totalPnl: 0 });
         
+        // UI State for History Modal
+        const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+        const [historyFilter, setHistoryFilter] = useState('ALL'); 
+
+        // REFS (For Persistence Fix)
+        const activeTradesRef = useRef([]);
+        const tradeHistoryRef = useRef([]);
+        const statsRef = useRef({ wins: 0, losses: 0, winRate: 0, totalPnl: 0 });
+
         const [scannedCount, setScannedCount] = useState(0);
         const wsChartRef = useRef(null); 
         const wsScannerRef = useRef(null); 
         const isGlobalTradeActive = useRef(false);
         const strategyStateRef = useRef({}); 
+
+        // --- HELPER FUNCTIONS ---
+        const formatPrice = (price) => {
+            const p = parseFloat(price);
+            if (isNaN(p) || p === 0) return '0.00';
+            if (p < 0.00001) return p.toFixed(8);
+            if (p < 0.01) return p.toFixed(7);
+            if (p < 1) return p.toFixed(6);      
+            if (p < 10) return p.toFixed(4);     
+            if (p < 1000) return p.toFixed(3);   
+            return p.toFixed(2);                 
+        };
+
+        const formatPnL = (val) => {
+            return val > 0 ? `+${val.toFixed(2)}%` : `${val.toFixed(2)}%`;
+        };
 
         // --- AUTH & FIRESTORE SYNC ---
         useEffect(() => {
@@ -219,11 +228,16 @@
             return () => unsubscribe();
         }, []);
 
-        // Load & Sync Data from Firestore
+        // Sync Refs
+        useEffect(() => { activeTradesRef.current = activeTrades; }, [activeTrades]);
+        useEffect(() => { tradeHistoryRef.current = tradeHistory; }, [tradeHistory]);
+        useEffect(() => { statsRef.current = stats; }, [stats]);
+
+        // Load Data Logic
         useEffect(() => {
             if (!user) return;
 
-            // Real-time listener for User Data
+            // Using Firestore onSnapshot for real-time updates
             const unsubscribe = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -231,32 +245,25 @@
                     const savedHistory = data.tradeHistory || [];
                     const savedStats = data.stats || { wins: 0, losses: 0, winRate: 0, totalPnl: 0 };
 
-                    // IMPORTANT: Only update state if different to prevent loops, 
-                    // but here we trust the DB as source of truth on load/sync
                     setActiveTrades(savedActiveTrades);
                     setTradeHistory(savedHistory);
                     setStats(savedStats);
 
-                    // --- RESUME LOGIC (CRITICAL FOR RELOADS) ---
+                    // Resume Trading State
                     if (savedActiveTrades.length > 0) {
                         isGlobalTradeActive.current = true;
-                        
-                        // Re-hydrate the strategy state for the active trade
                         const trade = savedActiveTrades[0];
                         const symbol = trade.pair.replace('/', '').replace('/USDT', 'USDT').toLowerCase();
-                        
                         if (!strategyStateRef.current[symbol]) {
-                            // Initialize empty state if not present
                             strategyStateRef.current[symbol] = { cumVol: 0, cumPV: 0, recentHighs: [], activeTrade: null };
                         }
-                        // Set the active trade in Ref so the algo picks it up when WebSocket connects
                         strategyStateRef.current[symbol].activeTrade = trade;
                     } else {
                         isGlobalTradeActive.current = false;
                         Object.values(strategyStateRef.current).forEach(s => s.activeTrade = null);
                     }
                 } else {
-                    // Create Initial Document
+                    // Create if new user
                     setDoc(doc(db, "users", user.uid), {
                         activeTrades: [],
                         tradeHistory: [],
@@ -265,13 +272,12 @@
                 }
             }, (error) => {
                 console.error("Firestore Read Error:", error);
-                // This usually happens if Rules are missing
             });
 
             return () => unsubscribe();
         }, [user]);
 
-        // Helper to Save Data to Firestore
+        // Save Data Logic
         const saveUserData = async (newActiveTrades, newHistory, newStats) => {
             if (!user) return;
             setSaveStatus('saving');
@@ -297,77 +303,39 @@
             }
         };
 
-        const formatPrice = (price) => {
-            const p = parseFloat(price);
-            if (isNaN(p) || p === 0) return '0.00';
-            if (p < 0.00001) return p.toFixed(8);
-            if (p < 0.01) return p.toFixed(7);
-            if (p < 1) return p.toFixed(6);      
-            if (p < 10) return p.toFixed(4);     
-            if (p < 1000) return p.toFixed(3);   
-            return p.toFixed(2);                 
-        };
-
-        const formatPnL = (val) => {
-            return val > 0 ? `+${val.toFixed(2)}%` : `${val.toFixed(2)}%`;
-        };
-
+        // --- DATA FETCHING & LOGIC ---
         useEffect(() => {
             if (!user) return; 
-
             const fetchPairs = async () => {
-            try {
-                setConnectionStatus('Connecting...');
-                const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-                const data = await response.json();
-                
-                const usdtPairs = data
-                .filter(s => s.symbol.endsWith('USDT') && parseFloat(s.volume) > 0)
-                .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)) 
-                .slice(0, 100); 
-
-                const formattedPairs = usdtPairs.map(s => ({
-                label: s.symbol.replace('USDT', '/USDT'),
-                symbol: s.symbol.toLowerCase(),
-                price: parseFloat(s.lastPrice),
-                vol: parseFloat(s.quoteVolume)
-                }));
-
-                setPairs(formattedPairs);
-                setFilteredPairs(formattedPairs);
-                
-                const btc = formattedPairs.find(p => p.symbol === 'btcusdt');
-                if (btc) setSelectedPair(btc);
-
-                startScanner(formattedPairs.slice(0, 50)); 
-                setScannedCount(50);
-
-            } catch (error) {
-                console.error("Error fetching pairs:", error);
-                setConnectionStatus('API Error');
-            }
+                try {
+                    setConnectionStatus('Connecting...');
+                    const response = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                    const data = await response.json();
+                    const usdtPairs = data.filter(s => s.symbol.endsWith('USDT') && parseFloat(s.volume) > 0).sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 100); 
+                    const formattedPairs = usdtPairs.map(s => ({ label: s.symbol.replace('USDT', '/USDT'), symbol: s.symbol.toLowerCase(), price: parseFloat(s.lastPrice), vol: parseFloat(s.quoteVolume) }));
+                    setPairs(formattedPairs);
+                    setFilteredPairs(formattedPairs);
+                    const btc = formattedPairs.find(p => p.symbol === 'btcusdt');
+                    if (btc) setSelectedPair(btc);
+                    startScanner(formattedPairs.slice(0, 50)); 
+                    setScannedCount(50);
+                } catch (error) {
+                    console.error("Error fetching pairs:", error);
+                    setConnectionStatus('API Error');
+                }
             };
             fetchPairs();
         }, [user]); 
 
         useEffect(() => {
-            if (!searchTerm) {
-            setFilteredPairs(pairs);
-            } else {
-            setFilteredPairs(pairs.filter(p => p.label.toLowerCase().includes(searchTerm.toLowerCase())));
-            }
+            if (!searchTerm) { setFilteredPairs(pairs); } else { setFilteredPairs(pairs.filter(p => p.label.toLowerCase().includes(searchTerm.toLowerCase()))); }
         }, [searchTerm, pairs]);
 
         const startScanner = (topPairs) => {
             if (wsScannerRef.current) wsScannerRef.current.close();
             topPairs.forEach(p => {
                 if (!strategyStateRef.current[p.symbol]) {
-                    strategyStateRef.current[p.symbol] = {
-                        cumVol: p.vol, 
-                        cumPV: p.vol * p.price,
-                        recentHighs: [],
-                        activeTrade: null 
-                    };
+                    strategyStateRef.current[p.symbol] = { cumVol: p.vol, cumPV: p.vol * p.price, recentHighs: [], activeTrade: null };
                 }
             });
             const streams = topPairs.map(p => `${p.symbol}@kline_1m`).join('/');
@@ -378,15 +346,7 @@
                 const payload = JSON.parse(event.data);
                 const k = payload.data.k; 
                 const symbol = payload.data.s.toLowerCase(); 
-                const candle = {
-                    close: parseFloat(k.c),
-                    high: parseFloat(k.h),
-                    low: parseFloat(k.l),
-                    open: parseFloat(k.o),
-                    volume: parseFloat(k.v),
-                    delta: (parseFloat(k.Q) - parseFloat(k.q)), 
-                    isClosed: k.x
-                };
+                const candle = { close: parseFloat(k.c), high: parseFloat(k.h), low: parseFloat(k.l), open: parseFloat(k.o), volume: parseFloat(k.v), delta: (parseFloat(k.Q) - parseFloat(k.q)), isClosed: k.x };
                 manageTradesAndSignals(symbol, candle);
             };
         };
@@ -403,26 +363,15 @@
             }
             const localHigh = Math.max(...state.recentHighs, candle.high);
 
-            // MANAGE ACTIVE TRADE (Resume logic integrated)
             if (state.activeTrade) {
                 const { tp, sl, entryPrice, pair } = state.activeTrade;
                 const currentPrice = candle.close;
                 const hitTP = candle.low <= tp;
                 const hitSL = candle.high >= sl;
                 
-                if (hitTP || hitSL) {
-                    closeTrade(symbol, hitTP, hitTP ? tp : sl);
-                    return; 
-                }
+                if (hitTP || hitSL) { closeTrade(symbol, hitTP, hitTP ? tp : sl); return; }
                 const pnlPercent = ((entryPrice - currentPrice) / entryPrice) * 100;
-                
-                // Update local state for UI PnL only (Don't save to DB on every tick to save writes)
-                setActiveTrades(prev => prev.map(t => {
-                    if (t.pair === pair) {
-                        return { ...t, currentPrice: currentPrice, pnl: pnlPercent };
-                    }
-                    return t;
-                }));
+                setActiveTrades(prev => prev.map(t => { if (t.pair === pair) { return { ...t, currentPrice: currentPrice, pnl: pnlPercent }; } return t; }));
                 return; 
             }
 
@@ -444,176 +393,162 @@
                 const stopLoss = Math.max(candle.high * 1.001, entryPrice * 1.002); 
                 const risk = stopLoss - entryPrice;
                 const takeProfit = entryPrice - (risk * 1.5); 
-                const newTrade = {
-                    id: Date.now(),
-                    pair: pairLabel,
-                    type: 'SHORT',
-                    entryPrice: entryPrice,
-                    currentPrice: entryPrice,
-                    sl: stopLoss,
-                    tp: takeProfit,
-                    pnl: 0,
-                    startTime: new Date().toLocaleTimeString(),
-                    delta: candle.delta.toFixed(2),
-                    setup: 'VWAP Micro Sweep'
-                };
-
-                // Update State and DB
+                const newTrade = { id: Date.now(), pair: pairLabel, type: 'SHORT', entryPrice: entryPrice, currentPrice: entryPrice, sl: stopLoss, tp: takeProfit, pnl: 0, startTime: new Date().toLocaleTimeString(), delta: candle.delta.toFixed(2), setup: 'VWAP Micro Sweep' };
                 setActiveTrades(prev => [newTrade, ...prev]);
                 state.activeTrade = newTrade; 
                 isGlobalTradeActive.current = true; 
-
-                saveUserData([newTrade], tradeHistory, stats);
+                saveUserData([newTrade], tradeHistoryRef.current, statsRef.current);
             }
         };
 
         const closeTrade = (symbol, isWin, closePrice) => {
             const state = strategyStateRef.current[symbol];
             let trade = state?.activeTrade;
-            
-            if (!trade) {
-                const pairLabel = symbol.toUpperCase().replace('USDT', '/USDT');
-                trade = activeTrades.find(t => t.pair === pairLabel);
-            }
-
+            if (!trade) { const pairLabel = symbol.toUpperCase().replace('USDT', '/USDT'); trade = activeTradesRef.current.find(t => t.pair === pairLabel); }
             if (!trade) return;
 
             const pnlPercent = ((trade.entryPrice - closePrice) / trade.entryPrice) * 100;
-            const closedTrade = {
-                ...trade,
-                closePrice: closePrice,
-                finalPnl: pnlPercent,
-                status: isWin ? 'WIN' : 'LOSS',
-                closeTime: new Date().toLocaleTimeString()
-            };
-
-            const newHistory = [closedTrade, ...tradeHistory].slice(0, 50);
-            const newStats = {
-                wins: stats.wins + (isWin ? 1 : 0),
-                losses: stats.losses + (!isWin ? 1 : 0),
-                winRate: 0, 
-                totalPnl: stats.totalPnl + pnlPercent
-            };
+            const closedTrade = { ...trade, closePrice: closePrice, finalPnl: pnlPercent, status: isWin ? 'WIN' : 'LOSS', closeTime: new Date().toLocaleTimeString() };
+            const currentHistory = tradeHistoryRef.current;
+            const currentStats = statsRef.current;
+            const newHistory = [closedTrade, ...currentHistory].slice(0, 100); 
+            const newStats = { wins: currentStats.wins + (isWin ? 1 : 0), losses: currentStats.losses + (!isWin ? 1 : 0), winRate: 0, totalPnl: currentStats.totalPnl + pnlPercent };
             const total = newStats.wins + newStats.losses;
             newStats.winRate = total > 0 ? ((newStats.wins / total) * 100).toFixed(1) : 0;
 
             setTradeHistory(newHistory);
             setActiveTrades([]);
             setStats(newStats);
-
             if(state) state.activeTrade = null;
             setTimeout(() => { isGlobalTradeActive.current = false; }, 1000);
-
             saveUserData([], newHistory, newStats);
         };
 
         const skipTrade = (trade) => {
             const symbol = trade.pair.replace('/', '').replace('/USDT', 'USDT').toLowerCase();
             const state = strategyStateRef.current[symbol];
-            
-            const closedTrade = {
-                ...trade,
-                status: 'SKIPPED',
-                closeTime: new Date().toLocaleTimeString(),
-                finalPnl: trade.pnl
-            };
-            
-            const newHistory = [closedTrade, ...tradeHistory].slice(0, 50);
-            
+            const closedTrade = { ...trade, status: 'SKIPPED', closeTime: new Date().toLocaleTimeString(), finalPnl: trade.pnl };
+            const currentHistory = tradeHistoryRef.current;
+            const newHistory = [closedTrade, ...currentHistory].slice(0, 100);
             setTradeHistory(newHistory);
             setActiveTrades([]);
-            
             if (state) state.activeTrade = null;
             isGlobalTradeActive.current = false;
-
-            // Updated: Save to DB on Skip
-            saveUserData([], newHistory, stats);
+            saveUserData([], newHistory, statsRef.current);
         };
 
         const handleTradeClick = (pairLabel) => {
             const pair = pairs.find(p => p.label === pairLabel);
-            if (pair) {
-                setSelectedPair(pair);
-            }
+            if (pair) { setSelectedPair(pair); }
         };
 
         useEffect(() => {
             if (!user || !selectedPair) return; 
             if (wsChartRef.current) wsChartRef.current.close();
             setPriceData([]);
-            fetch(`https://api.binance.com/api/v3/klines?symbol=${selectedPair.symbol.toUpperCase()}&interval=1m&limit=100`)
-                .then(res => res.json())
-                .then(data => {
-                    let cumVol = 0;
-                    let cumPV = 0;
-                    const formatted = data.map(d => {
-                        const close = parseFloat(d[4]);
-                        const vol = parseFloat(d[5]);
-                        cumVol += vol;
-                        cumPV += (close * vol);
-                        return {
-                            time: new Date(d[0]).toLocaleTimeString(),
-                            close: close,
-                            vwap: cumPV / cumVol, 
-                            delta: 0 
-                        };
-                    });
-                    setPriceData(formatted);
-                    setCurrentPrice(formatted[formatted.length-1].close);
-                })
-                .catch(err => console.log("Chart err", err));
+            fetch(`https://api.binance.com/api/v3/klines?symbol=${selectedPair.symbol.toUpperCase()}&interval=1m&limit=100`).then(res => res.json()).then(data => {
+                let cumVol = 0; let cumPV = 0;
+                const formatted = data.map(d => { const close = parseFloat(d[4]); const vol = parseFloat(d[5]); cumVol += vol; cumPV += (close * vol); return { time: new Date(d[0]).toLocaleTimeString(), close: close, vwap: cumPV / cumVol, delta: 0 }; });
+                setPriceData(formatted); setCurrentPrice(formatted[formatted.length-1].close);
+            }).catch(err => console.log("Chart err", err));
 
             const wsUrl = `wss://stream.binance.com:9443/stream?streams=${selectedPair.symbol}@kline_1m/${selectedPair.symbol}@aggTrade`;
             const ws = new WebSocket(wsUrl);
             wsChartRef.current = ws;
             ws.onopen = () => setConnectionStatus('Connected');
             ws.onmessage = (event) => {
-            const payload = JSON.parse(event.data);
-            const message = payload.data; 
-            if (message.e === 'aggTrade') {
-                const price = parseFloat(message.p);
-                setCurrentPrice(price);
-            }
-            if (message.e === 'kline') {
-                const k = message.k;
-                const newCandle = {
-                time: new Date(k.t).toLocaleTimeString(),
-                close: parseFloat(k.c),
-                vwap: parseFloat(k.c), 
-                delta: 0
-                };
-                if (k.x) { 
-                setPriceData(prev => {
-                    const last = prev[prev.length - 1];
-                    const newVwap = (last.vwap * 20 + parseFloat(k.c) * parseFloat(k.v)) / (20 + parseFloat(k.v)); 
-                    return [...prev.slice(1), { ...newCandle, vwap: newVwap }];
-                });
-                }
-            }
+                const payload = JSON.parse(event.data);
+                const message = payload.data; 
+                if (message.e === 'aggTrade') { const price = parseFloat(message.p); setCurrentPrice(price); }
+                if (message.e === 'kline') { const k = message.k; const newCandle = { time: new Date(k.t).toLocaleTimeString(), close: parseFloat(k.c), vwap: parseFloat(k.c), delta: 0 }; if (k.x) { setPriceData(prev => { const last = prev[prev.length - 1]; const newVwap = (last.vwap * 20 + parseFloat(k.c) * parseFloat(k.v)) / (20 + parseFloat(k.v)); return [...prev.slice(1), { ...newCandle, vwap: newVwap }]; }); } }
             };
-            return () => {
-            if (ws.readyState === 1) ws.close();
-            };
+            return () => { if (ws.readyState === 1) ws.close(); };
         }, [selectedPair, user]);
 
-        // --- AUTH LOADING STATE ---
-        if (authChecking) {
-            return (
-                <div className="h-screen flex items-center justify-center bg-slate-950">
-                    <Activity className="w-10 h-10 text-sky-500 animate-spin" />
-                </div>
-            );
-        }
+        if (authChecking) { return (<div className="h-screen flex items-center justify-center bg-slate-950"><Activity className="w-10 h-10 text-sky-500 animate-spin" /></div>); }
+        if (!user) { return <LoginScreen />; }
 
-        // --- LOGIN SCREEN ---
-        if (!user) {
-            return <LoginScreen />;
-        }
+        // --- FILTER HISTORY LOGIC ---
+        const getFilteredHistory = () => {
+            if (historyFilter === 'ALL') return tradeHistory;
+            return tradeHistory.filter(t => t.status === historyFilter);
+        };
 
-        // --- DASHBOARD UI ---
         return (
             <div className="flex flex-col h-screen text-slate-200 overflow-hidden font-sans selection:bg-sky-500/30">
             
+            {/* --- HISTORY MODAL --- */}
+            {isHistoryOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center modal-backdrop p-4 animate-in fade-in duration-200">
+                    <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-2xl flex flex-col shadow-2xl relative overflow-hidden">
+                        <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
+                            <div className="flex items-center gap-3">
+                                <History className="text-sky-500" />
+                                <h2 className="text-xl font-bold text-white">Full Trade History</h2>
+                            </div>
+                            <button onClick={() => setIsHistoryOpen(false)} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-4 border-b border-slate-800 flex gap-2 overflow-x-auto">
+                            {['ALL', 'WIN', 'LOSS', 'SKIPPED'].map(filter => (
+                                <button
+                                    key={filter}
+                                    onClick={() => setHistoryFilter(filter)}
+                                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                                        historyFilter === filter 
+                                        ? 'bg-sky-600 text-white shadow-lg shadow-sky-900/50' 
+                                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                    }`}
+                                >
+                                    {filter === 'ALL' ? 'All Trades' : filter}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-6 gap-4 p-4 bg-slate-950/30 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-800">
+                            <div className="col-span-1">Pair / Setup</div>
+                            <div className="col-span-1 text-center">Status</div>
+                            <div className="col-span-1 text-center">Entry</div>
+                            <div className="col-span-1 text-center">Exit</div>
+                            <div className="col-span-1 text-center">PnL</div>
+                            <div className="col-span-1 text-right">Time</div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                            {getFilteredHistory().map((t, i) => (
+                                <div key={i} className="grid grid-cols-6 gap-4 p-4 border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors items-center text-xs">
+                                    <div className="col-span-1">
+                                        <div className="font-bold text-white">{t.pair}</div>
+                                        <div className="text-[10px] text-slate-500">{t.setup}</div>
+                                    </div>
+                                    <div className="col-span-1 text-center">
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${
+                                            t.status === 'WIN' ? 'bg-emerald-500/20 text-emerald-400' :
+                                            t.status === 'LOSS' ? 'bg-rose-500/20 text-rose-400' :
+                                            'bg-slate-700 text-slate-400'
+                                        }`}>
+                                            {t.status}
+                                        </span>
+                                    </div>
+                                    <div className="col-span-1 text-center font-mono text-slate-300">{formatPrice(t.entryPrice)}</div>
+                                    <div className="col-span-1 text-center font-mono text-slate-300">{t.closePrice ? formatPrice(t.closePrice) : '-'}</div>
+                                    <div className="col-span-1 text-center">
+                                        <span className={`font-mono font-bold ${
+                                            t.finalPnl > 0 ? 'text-emerald-400' : t.finalPnl < 0 ? 'text-rose-400' : 'text-slate-400'
+                                        }`}>
+                                            {formatPnL(t.finalPnl)}
+                                        </span>
+                                    </div>
+                                    <div className="col-span-1 text-right text-slate-500 text-[10px]">{t.closeTime}</div>
+                                </div>
+                            ))}
+                            {getFilteredHistory().length === 0 && (
+                                <div className="text-center py-20 text-slate-600">No records found.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* GLASS HEADER */}
             <header className="flex items-center justify-between px-6 py-4 glass-header z-50">
                 <div className="flex items-center gap-4">
@@ -841,9 +776,7 @@
                                     className="bg-slate-900/80 border border-sky-500/30 rounded-xl shadow-[0_0_20px_rgba(14,165,233,0.1)] relative overflow-hidden group animate-in slide-in-from-right duration-500 cursor-pointer hover:border-sky-400 transition-colors"
                                     onClick={() => handleTradeClick(trade.pair)}
                                 >
-                                    {/* GLOW BAR */}
                                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-sky-500 to-blue-500"></div>
-                                    
                                     <div className="p-4">
                                         <div className="flex justify-between items-start mb-3">
                                             <div>
@@ -861,16 +794,12 @@
                                                 <X size={16} />
                                             </button>
                                         </div>
-
-                                        {/* PNL CARD */}
                                         <div className="mb-4 p-3 bg-slate-950/50 rounded-lg border border-slate-800 flex justify-between items-center hover:bg-slate-900/80 transition-colors">
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unrealized PnL</span>
                                             <span className={`text-xl font-bold font-mono tracking-tight ${trade.pnl >= 0 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]' : 'text-rose-400'}`}>
                                                 {formatPnL(trade.pnl)}
                                             </span>
                                         </div>
-
-                                        {/* STATS GRID */}
                                         <div className="grid grid-cols-3 gap-2">
                                             <div className="bg-slate-800/30 p-2 rounded-lg text-center border border-slate-700/30">
                                                 <div className="text-[9px] text-slate-500 uppercase mb-0.5">Entry</div>
@@ -891,13 +820,21 @@
                         )}
                     </div>
 
-                    {/* HISTORY */}
+                    {/* HISTORY (Mini View) */}
                     <div className="h-1/3 border-t border-slate-800/50 bg-slate-900/30 flex flex-col">
-                        <div className="px-5 py-3 border-b border-slate-800/30 text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                            <History className="w-3.5 h-3.5" /> Recent Log
+                        <div className="px-5 py-3 border-b border-slate-800/30 flex justify-between items-center">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <History className="w-3.5 h-3.5" /> Recent Log
+                            </div>
+                            <button 
+                                onClick={() => setIsHistoryOpen(true)}
+                                className="text-[10px] text-sky-400 hover:text-sky-300 flex items-center gap-1 font-bold uppercase tracking-wide hover:underline"
+                            >
+                                View Full History <ChevronRight size={10} />
+                            </button>
                         </div>
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
-                            {tradeHistory.map((h, i) => (
+                            {tradeHistory.slice(0, 5).map((h, i) => (
                                 <div 
                                     key={i} 
                                     className="flex justify-between items-center px-5 py-3 border-b border-slate-800/30 hover:bg-slate-800/50 transition-colors text-xs cursor-pointer group"
